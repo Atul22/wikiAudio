@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Wiki Audio</string>
+    <string name="play_button_start">Start Playing</string>
+    <string name="play_button_stop">Stop Playing</string>
+    <string name="now_recording">Now Recording</string>
 </resources>

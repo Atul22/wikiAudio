@@ -119,8 +119,8 @@ public class Network {
 				queryJSONObject = reader.getJSONObject("query");
 				tokensJSONObject = queryJSONObject.getJSONObject("tokens");
                 editToken = tokensJSONObject.getString("csrftoken");
-                Log.d("edittoken", editToken);
-                return (editToken);
+				Log.d("edit_token", editToken);
+				return (editToken);
 
 			} catch (JSONException e) {
 				e.printStackTrace();

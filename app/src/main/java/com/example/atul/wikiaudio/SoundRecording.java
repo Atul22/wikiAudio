@@ -27,7 +27,7 @@ public class SoundRecording extends Activity {
     private static final String AUDIO_RECORDER_FILE_EXT_WAV = ".wav";
     private static final String AUDIO_RECORDER_FOLDER = "AudioRecorder";
     private static final String AUDIO_RECORDER_TEMP_FILE = "record_temp.raw";
-    private static final int RECORDER_SAMPLERATE = 44100;
+    private static final int RECORDER_SAMPLE_RATE = 44100;
     private static final int RECORDER_CHANNELS = AudioFormat.CHANNEL_IN_MONO;
     private static final int RECORDER_AUDIO_ENCODING = AudioFormat.ENCODING_PCM_16BIT;
     public Boolean mStartPlaying = true;
@@ -35,7 +35,7 @@ public class SoundRecording extends Activity {
     private int bufferSize = 0;
     private Thread recordingThread = null;
     private boolean isRecording = false;
-    private Button recordButton, playButton, uploadButton;
+    private Button playButton;
     private TextView recordText;
     private MediaPlayer mPlayer = null;
 
@@ -48,29 +48,25 @@ public class SoundRecording extends Activity {
                 AudioFormat.CHANNEL_IN_MONO,
                 AudioFormat.ENCODING_PCM_16BIT);
 
-        recordButton = (Button) findViewById(R.id.btnStart);
+        Button recordButton = (Button) findViewById(R.id.btnStart);
         playButton = (Button) findViewById(R.id.btnPlay);
         recordText = (TextView) findViewById(R.id.space);
-        uploadButton = (Button) findViewById(R.id.upload_button);
+        Button uploadButton = (Button) findViewById(R.id.upload_button);
 
         recordButton.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    // start your timer
                     AppLog.logString("Start Recording");
                     stopPlaying();
-                    playButton.setText("Start Playing");
+                    playButton.setText(R.string.play_button_start);
                     startRecording();
-                    recordText.setText("Recording");
-
+                    recordText.setText(R.string.now_recording);
                 } else if (event.getAction() == MotionEvent.ACTION_UP) {
-                    // stop your timer.
                     AppLog.logString("Stop Recording");
                     recordText.setText("");
                     mStartPlaying = true;
                     stopRecording();
-
                 }
                 return false;
             }
@@ -79,13 +75,7 @@ public class SoundRecording extends Activity {
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onPlay(mStartPlaying);
-                if (mStartPlaying) {
-                    playButton.setText("Stop playing");
-                } else {
-                    playButton.setText("Start playing");
-                }
-                mStartPlaying = !mStartPlaying;
+                onPlayStatusChanged();
             }
         });
 
@@ -95,9 +85,19 @@ public class SoundRecording extends Activity {
                 new UploadData("record.wav", getFilename()).execute();
             }
         });
-
-
     }
+
+
+    private void onPlayStatusChanged() {
+        onPlay(mStartPlaying);
+        if (mStartPlaying) {
+            playButton.setText(R.string.play_button_stop);
+        } else {
+            playButton.setText(R.string.play_button_start);
+        }
+        mStartPlaying = !mStartPlaying;
+    }
+
 
     private void onPlay(boolean start) {
         if (start) {
@@ -111,6 +111,12 @@ public class SoundRecording extends Activity {
         mPlayer = new MediaPlayer();
         try {
             mPlayer.setDataSource(getFilename());
+            mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mediaPlayer) {
+                    onPlayStatusChanged();
+                }
+            });
             mPlayer.prepare();
             mPlayer.start();
         } catch (IOException e) {
@@ -145,17 +151,12 @@ public class SoundRecording extends Activity {
             file.mkdirs();
         }
 
-        File tempFile = new File(filepath, AUDIO_RECORDER_TEMP_FILE);
-
-        if (tempFile.exists())
-            tempFile.delete();
-
         return (file.getAbsolutePath() + "/" + AUDIO_RECORDER_TEMP_FILE);
     }
 
     private void startRecording() {
         recorder = new AudioRecord(MediaRecorder.AudioSource.MIC,
-                RECORDER_SAMPLERATE, RECORDER_CHANNELS, RECORDER_AUDIO_ENCODING, bufferSize);
+                RECORDER_SAMPLE_RATE, RECORDER_CHANNELS, RECORDER_AUDIO_ENCODING, bufferSize);
 
         int i = recorder.getState();
         if (i == 1)
@@ -182,11 +183,10 @@ public class SoundRecording extends Activity {
         try {
             os = new FileOutputStream(filename);
         } catch (FileNotFoundException e) {
-// TODO Auto-generated catch block
             e.printStackTrace();
         }
 
-        int read = 0;
+        int read;
 
         if (null != os) {
             while (isRecording) {
@@ -228,18 +228,17 @@ public class SoundRecording extends Activity {
 
     private void deleteTempFile() {
         File file = new File(getTempFilename());
-
         file.delete();
     }
 
     private void copyWaveFile(String inFilename, String outFilename) {
-        FileInputStream in = null;
-        FileOutputStream out = null;
-        long totalAudioLen = 0;
-        long totalDataLen = totalAudioLen + 36;
-        long longSampleRate = RECORDER_SAMPLERATE;
+        FileInputStream in;
+        FileOutputStream out;
+        long totalAudioLen;
+        long totalDataLen;
+        long longSampleRate = RECORDER_SAMPLE_RATE;
         int channels = 1;
-        long byteRate = RECORDER_BPP * RECORDER_SAMPLERATE * channels / 8;
+        long byteRate = RECORDER_BPP * RECORDER_SAMPLE_RATE * channels / 8;
 
         byte[] data = new byte[bufferSize];
 
@@ -260,8 +259,6 @@ public class SoundRecording extends Activity {
 
             in.close();
             out.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -324,11 +321,11 @@ public class SoundRecording extends Activity {
 
     private class UploadData extends AsyncTask<String, String, String> {
 
-        String resultEdit, edittoken;
+        String resultEdit, edit_token;
         String title;
         InputStream in_stream;
 
-        public UploadData(String title, String filePath) {
+        UploadData(String title, String filePath) {
             this.title = title;
             try {
                 this.in_stream = getContentResolver().openInputStream(Uri.fromFile(new File(filePath)));
@@ -339,17 +336,15 @@ public class SoundRecording extends Activity {
 
         @Override
         protected String doInBackground(String... params) {
-            // TODO Auto-generated method stub
             String responseStr = Network.getEditToken();
-            edittoken = responseStr;
+            edit_token = responseStr;
             Log.d("EditToken", responseStr);
-            resultEdit = Network.uploadFile(title, in_stream, edittoken);
+            resultEdit = Network.uploadFile(title, in_stream, edit_token);
             return resultEdit;
         }
 
         @Override
         protected void onPostExecute(String result) {
-            // TODO Auto-generated method stub
             super.onPostExecute(result);
             Log.d("post", result);
         }

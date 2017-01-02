@@ -10,10 +10,8 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 public class StartActivity extends AppCompatActivity {
-
     public EditText mUsername, mPassword;
     public String usernameStr, passwordStr, responseStr;
-    private Button submit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,7 +20,7 @@ public class StartActivity extends AppCompatActivity {
 
         mUsername = (EditText) findViewById(R.id.username);
         mPassword = (EditText) findViewById(R.id.password);
-        submit = (Button) findViewById(R.id.submit);
+        Button submit = (Button) findViewById(R.id.submit);
 
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -32,22 +30,13 @@ public class StartActivity extends AppCompatActivity {
                 new LoginAsync().execute("");
             }
         });
-
-
     }
 
     private class LoginAsync extends AsyncTask<String, String, String> {
-
         @Override
         protected String doInBackground(String... params) {
-            // TODO Auto-generated method stub
             if (usernameStr != null && passwordStr != null) {
-
-                // TODO Auto-generated method stub
                 responseStr = Network.login(usernameStr, passwordStr);
-
-                // output.setText(responseStr);
-
             } else {
                 Toast.makeText(getApplicationContext(), "Please enter all fields",
                         Toast.LENGTH_LONG).show();
@@ -57,17 +46,15 @@ public class StartActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String result) {
-            // TODO Auto-generated method stub
-
-
             super.onPostExecute(result);
             if (responseStr.equals("Success")) {
                 Intent intent = new Intent(getApplicationContext(), SoundRecording.class);
                 startActivity(intent);
             } else {
-                Toast.makeText(getApplicationContext(), "Login Failed!\nPlease check your credentials/connection!", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(),
+                        "Login Failed!\nPlease check your credentials/connection!",
+                        Toast.LENGTH_LONG).show();
             }
         }
-
     }
 }
