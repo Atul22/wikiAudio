@@ -1,4 +1,4 @@
-package com.example.atul.wikiaudio;
+package com.example.atul.wikiaudio.activity;
 
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -8,6 +8,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import com.example.atul.wikiaudio.Network;
+import com.example.atul.wikiaudio.R;
 
 public class StartActivity extends AppCompatActivity {
     public EditText mUsername, mPassword;
@@ -48,7 +51,7 @@ public class StartActivity extends AppCompatActivity {
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
             if (responseStr.equals("Success")) {
-                Intent intent = new Intent(getApplicationContext(), SoundRecording.class);
+                Intent intent = new Intent(getApplicationContext(), SoundRecordingActivity.class);
                 startActivity(intent);
             } else {
                 Toast.makeText(getApplicationContext(),

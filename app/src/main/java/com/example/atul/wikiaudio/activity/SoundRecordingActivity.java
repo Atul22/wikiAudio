@@ -1,6 +1,5 @@
-package com.example.atul.wikiaudio;
+package com.example.atul.wikiaudio.activity;
 
-import android.app.Activity;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaPlayer;
@@ -9,11 +8,15 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
+import com.example.atul.wikiaudio.Network;
+import com.example.atul.wikiaudio.R;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,7 +25,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class SoundRecording extends Activity {
+public class SoundRecordingActivity extends AppCompatActivity {
+
+    private static final String TAG = SoundRecordingActivity.class.getSimpleName();
+
     private static final int RECORDER_BPP = 16;
     private static final String AUDIO_RECORDER_FILE_EXT_WAV = ".wav";
     private static final String AUDIO_RECORDER_FOLDER = "AudioRecorder";
@@ -57,13 +63,13 @@ public class SoundRecording extends Activity {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    AppLog.logString("Start Recording");
+                    Log.d(TAG, "Start Recording");
                     stopPlaying();
                     playButton.setText(R.string.play_button_start);
                     startRecording();
                     recordText.setText(R.string.now_recording);
                 } else if (event.getAction() == MotionEvent.ACTION_UP) {
-                    AppLog.logString("Stop Recording");
+                    Log.d(TAG, "Stop Recording");
                     recordText.setText("");
                     mStartPlaying = true;
                     stopRecording();
@@ -248,7 +254,7 @@ public class SoundRecording extends Activity {
             totalAudioLen = in.getChannel().size();
             totalDataLen = totalAudioLen + 36;
 
-            AppLog.logString("File size: " + totalDataLen);
+            Log.d(TAG, "File size: " + totalDataLen);
 
             WriteWaveFileHeader(out, totalAudioLen, totalDataLen,
                     longSampleRate, channels, byteRate);
