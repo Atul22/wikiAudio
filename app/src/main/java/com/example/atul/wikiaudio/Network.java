@@ -25,7 +25,9 @@ public class Network {
 			buffer.append("lgname=");
 			buffer.append(URLEncoder.encode(username, "UTF-8"));
 
-			String responseBody = post("https://en.wikipedia.org/w/api.php?action=login&format=json", buffer.toString());
+			String responseBody = post(
+					"https://en.wikipedia.org/w/api.php?action=login&format=json",
+					buffer.toString());
 			Log.d("dasfas", responseBody);
             String lgtoken;
             JSONObject reader;
@@ -45,7 +47,8 @@ public class Network {
             buffer.append(URLEncoder.encode(password, "UTF-8"));
             buffer.append("&lgtoken=");
 			buffer.append(URLEncoder.encode(lgtoken, "UTF-8"));
-			responseBody = post("https://en.wikipedia.org/w/api.php?action=login&format=json", buffer.toString());
+			responseBody = post("https://en.wikipedia.org/w/api.php?action=login&format=json",
+					buffer.toString());
 			String result;
 			try {
 				reader = new JSONObject(responseBody);
@@ -91,9 +94,11 @@ public class Network {
             out.write(text);
 
 			StringBuilder temp = new StringBuilder(100000);
-            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
-            grabCookies(connection);
-            String line;
+			BufferedReader in = new BufferedReader(new InputStreamReader(
+					connection.getInputStream(),
+					"UTF-8"));
+			grabCookies(connection);
+			String line;
             while ((line = in.readLine()) != null) {
                 temp.append(line);
                 temp.append("\n");
@@ -107,7 +112,8 @@ public class Network {
 
 	public static String getEditToken() {
 		try {
-			String responseBody = fetch("https://en.wikipedia.org/w/api.php?action=query&format=json&meta=tokens");
+			String responseBody = fetch(
+					"https://en.wikipedia.org/w/api.php?action=query&format=json&meta=tokens");
 
             String editToken;
             JSONObject reader;
@@ -178,7 +184,9 @@ public class Network {
 			out.write(text);
 		}
 		StringBuilder temp = new StringBuilder(100000);
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8")))
+		try (BufferedReader in = new BufferedReader(
+				new InputStreamReader(connection.getInputStream(),
+						"UTF-8")))
 		{
 			grabCookies(connection);
 			String line;
@@ -201,7 +209,9 @@ public class Network {
 		// check lag
 
 		String temp;
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"))) {
+		try (BufferedReader in = new BufferedReader(
+				new InputStreamReader(connection.getInputStream(),
+						"UTF-8"))) {
 			String line;
 			StringBuilder text = new StringBuilder(100000);
 			while ((line = in.readLine()) != null) {

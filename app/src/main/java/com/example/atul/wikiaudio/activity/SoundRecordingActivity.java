@@ -334,7 +334,8 @@ public class SoundRecordingActivity extends AppCompatActivity {
         UploadData(String title, String filePath) {
             this.title = title;
             try {
-                this.in_stream = getContentResolver().openInputStream(Uri.fromFile(new File(filePath)));
+                this.in_stream = getContentResolver().openInputStream(
+                        Uri.fromFile(new File(filePath)));
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
