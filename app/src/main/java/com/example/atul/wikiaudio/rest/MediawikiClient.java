@@ -2,14 +2,25 @@ package com.example.atul.wikiaudio.rest;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
+import retrofit2.http.Field;
+import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.POST;
-import retrofit2.http.Query;
 
 public interface MediawikiClient {
-    @POST("/?action=login&format=json")
+    @FormUrlEncoded
+    @POST("./")
+    Call<ResponseBody> getToken(
+            @Field("action") String action,
+            @Field("meta") String meta,
+            @Field("type") String type
+    );
+
+    @FormUrlEncoded
+    @POST("./")
     Call<ResponseBody> login(
-            @Query("lgname") String username,
-            @Query("lgpassword") String password,
-            @Query("lgtoken") String token
+            @Field("action") String action,
+            @Field("lgname") String username,
+            @Field("lgpassword") String password,
+            @Field("lgtoken") String token
     );
 }
