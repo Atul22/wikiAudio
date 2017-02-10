@@ -1,11 +1,13 @@
 package com.example.atul.wikiaudio.rest;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import android.content.Context;
 
-import okhttp3.Cookie;
+import com.franmontiel.persistentcookiejar.PersistentCookieJar;
+import com.franmontiel.persistentcookiejar.cache.SetCookieCache;
+import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor;
+
+import java.io.IOException;
+
 import okhttp3.CookieJar;
 import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
@@ -49,26 +51,18 @@ public class ServiceGenerator {
         }
     };
 
-    private static CookieJar cookieJar = new CookieJar() {
-        private final HashMap<HttpUrl, List<Cookie>> cookieStore = new HashMap<>();
-
-        @Override
-        public void saveFromResponse(HttpUrl url, List<Cookie> cookies) {
-            cookieStore.put(url, cookies);
-        }
-
-        @Override
-        public List<Cookie> loadForRequest(HttpUrl url) {
-            List<Cookie> cookies = cookieStore.get(url);
-            return cookies != null ? cookies : new ArrayList<Cookie>();
-        }
-    };
+    private static CookieJar cookieJar = null;
 
     private static OkHttpClient.Builder httpClient =
-            new OkHttpClient.Builder().cookieJar(cookieJar);
+            new OkHttpClient.Builder();
 
     public static <S> S createService(
-            Class<S> serviceClass) {
+            Class<S> serviceClass, Context context) {
+        if (cookieJar == null) {
+            cookieJar = new PersistentCookieJar(new SetCookieCache(),
+                    new SharedPrefsCookiePersistor(context));
+            httpClient.cookieJar(cookieJar);
+        }
         boolean rebuild = false;
         if (!httpClient.interceptors().contains(logging)) {
             httpClient.addInterceptor(logging);

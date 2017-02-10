@@ -106,7 +106,8 @@ public class SoundRecordingActivity extends AppCompatActivity {
     }
 
     private void initiateUpload(final String title, final String filepath) {
-        MediawikiClient mediawikiClient = ServiceGenerator.createService(MediawikiClient.class);
+        MediawikiClient mediawikiClient = ServiceGenerator.createService(MediawikiClient.class,
+                getApplicationContext());
         Call<ResponseBody> call = mediawikiClient.getToken("query", "tokens", null);
         call.enqueue(new Callback<ResponseBody>() {
             @Override

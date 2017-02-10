@@ -49,7 +49,8 @@ public class StartActivity extends AppCompatActivity {
     }
 
     private void initiateLogin(final String username, final String password) {
-        MediawikiClient mediawikiClient = ServiceGenerator.createService(MediawikiClient.class);
+        MediawikiClient mediawikiClient = ServiceGenerator.createService(MediawikiClient.class,
+                getApplicationContext());
         Call<ResponseBody> call = mediawikiClient.getToken("query", "tokens", "login");
         call.enqueue(new Callback<ResponseBody>() {
             @Override
@@ -87,7 +88,8 @@ public class StartActivity extends AppCompatActivity {
     }
 
     private void completeLogin(final String username, final String password, final String token) {
-        MediawikiClient mediawikiClient = ServiceGenerator.createService(MediawikiClient.class);
+        MediawikiClient mediawikiClient = ServiceGenerator.createService(MediawikiClient.class,
+                getApplicationContext());
         Call<ResponseBody> call = mediawikiClient.login("login", username, password, token);
         call.enqueue(new Callback<ResponseBody>() {
             @Override
