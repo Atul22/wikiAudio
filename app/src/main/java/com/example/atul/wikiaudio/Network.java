@@ -19,54 +19,6 @@ import java.util.Map;
 public class Network {
 	private static Map<String, String> cookies = new HashMap<>(12);
 
-	public static String login(String username, String password) {
-		try {
-			StringBuilder buffer = new StringBuilder(500);
-			buffer.append("lgname=");
-			buffer.append(URLEncoder.encode(username, "UTF-8"));
-
-			String responseBody = post(
-					"https://en.wikipedia.org/w/api.php?action=login&format=json",
-					buffer.toString());
-			Log.d("dasfas", responseBody);
-            String lgtoken;
-            JSONObject reader;
-			JSONObject loginJSONObject;
-
-			try {
-				reader = new JSONObject(responseBody);
-				loginJSONObject = reader.getJSONObject("login");
-				lgtoken = loginJSONObject.getString("token");
-
-			} catch (JSONException e) {
-				e.printStackTrace();
-				return null;
-			}
-
-			buffer.append("&lgpassword=");
-            buffer.append(URLEncoder.encode(password, "UTF-8"));
-            buffer.append("&lgtoken=");
-			buffer.append(URLEncoder.encode(lgtoken, "UTF-8"));
-			responseBody = post("https://en.wikipedia.org/w/api.php?action=login&format=json",
-					buffer.toString());
-			String result;
-			try {
-				reader = new JSONObject(responseBody);
-				loginJSONObject = reader.getJSONObject("login");
-				result = loginJSONObject.getString("result");
-			} catch (JSONException e) {
-				e.printStackTrace();
-				return null;
-			}
-
-			return result;
-
-		} catch (Exception e) {
-            e.printStackTrace();
-        }
-		return null;
-	}
-
 	public static String uploadFile(String title, InputStream in_stream, String wpEditToken){
 		try {
 

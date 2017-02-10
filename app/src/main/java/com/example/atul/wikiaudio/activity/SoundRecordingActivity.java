@@ -1,5 +1,6 @@
 package com.example.atul.wikiaudio.activity;
 
+import android.content.Intent;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaPlayer;
@@ -14,9 +15,15 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.atul.wikiaudio.Network;
 import com.example.atul.wikiaudio.R;
+import com.example.atul.wikiaudio.rest.MediawikiClient;
+import com.example.atul.wikiaudio.rest.ServiceGenerator;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,6 +31,11 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class SoundRecordingActivity extends AppCompatActivity {
 
@@ -88,11 +100,66 @@ public class SoundRecordingActivity extends AppCompatActivity {
         uploadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new UploadData("record.wav", getFilename()).execute();
+                initiateUpload("record.wav", getFilename());
             }
         });
     }
 
+    private void initiateUpload(final String title, final String filepath) {
+        MediawikiClient mediawikiClient = ServiceGenerator.createService(MediawikiClient.class);
+        Call<ResponseBody> call = mediawikiClient.getToken("query", "tokens", null);
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    try {
+                        String responseStr = response.body().string();
+                        String editToken;
+                        JSONObject reader;
+                        JSONObject tokenJSONObject;
+                        try {
+                            reader = new JSONObject(responseStr);
+                            tokenJSONObject = reader.getJSONObject("query").getJSONObject("tokens");
+                            editToken = tokenJSONObject.getString("csrftoken");
+                            if (editToken.equals("+\\")) {
+                                Toast.makeText(getApplicationContext(),
+                                        "You are not logged in! \nPlease login to continue.",
+                                        Toast.LENGTH_LONG).show();
+                                Intent intent = new Intent(getApplicationContext(),
+                                        StartActivity.class);
+                                startActivity(intent);
+                            } else {
+                                completeUpload(title, filepath, editToken);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            Toast.makeText(getApplicationContext(),
+                                    "Server misbehaved! \nPlease try again later.",
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Toast.makeText(getApplicationContext(),
+                                "Please check your connection!",
+                                Toast.LENGTH_LONG).show();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Toast.makeText(getApplicationContext(),
+                        "Please check your connection!",
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void completeUpload(String title, String filepath, String editToken) {
+        Toast.makeText(getApplicationContext(),
+                "Edit token: " + editToken,
+                Toast.LENGTH_LONG).show();
+    }
 
     private void onPlayStatusChanged() {
         onPlay(mStartPlaying);

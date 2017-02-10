@@ -79,7 +79,9 @@ public class StartActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-
+                Toast.makeText(getApplicationContext(),
+                        "Please check your connection!",
+                        Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -121,7 +123,9 @@ public class StartActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-
+                Toast.makeText(getApplicationContext(),
+                        "Please check your connection!",
+                        Toast.LENGTH_LONG).show();
             }
         });
     }
