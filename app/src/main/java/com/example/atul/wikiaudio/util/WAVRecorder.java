@@ -191,7 +191,8 @@ public class WAVRecorder {
 
         //  Delete temporary file
         File tempFile = new File(getTempFilename());
-        tempFile.delete();
+        if (!tempFile.delete())
+            Log.d(TAG, "Can not delete temporary file!");
     }
 
     private String getTempFilename() {
@@ -199,7 +200,8 @@ public class WAVRecorder {
         File file = new File(filepath, AUDIO_RECORDER_FOLDER);
 
         if (!file.exists()) {
-            file.mkdirs();
+            if (!file.mkdirs())
+                Log.d(TAG, "Can not create directory!");
         }
 
         return (file.getAbsolutePath() + "/" + AUDIO_RECORDER_TEMP_FILE);

@@ -14,7 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.atul.wikiaudio.R;
-import com.example.atul.wikiaudio.rest.MediawikiClient;
+import com.example.atul.wikiaudio.rest.MediaWikiClient;
 import com.example.atul.wikiaudio.rest.ServiceGenerator;
 import com.example.atul.wikiaudio.util.WAVRecorder;
 
@@ -36,7 +36,7 @@ public class SoundRecordingActivity extends AppCompatActivity {
 
     private static final String TAG = SoundRecordingActivity.class.getSimpleName();
 
-    private static final String AUDIO_RECORDER_FILE_EXT_WAV = ".wav";
+    private static final String RECORDED_FILENAME = "record.wav";
     private static final String AUDIO_RECORDER_FOLDER = "AudioRecorder";
     final WAVRecorder recorder = new WAVRecorder();
     public Boolean mStartPlaying = true;
@@ -100,9 +100,9 @@ public class SoundRecordingActivity extends AppCompatActivity {
     }
 
     private void initiateUpload(final String title, final String filepath) {
-        MediawikiClient mediawikiClient = ServiceGenerator.createService(MediawikiClient.class,
+        MediaWikiClient mediaWikiClient = ServiceGenerator.createService(MediaWikiClient.class,
                 getApplicationContext());
-        Call<ResponseBody> call = mediawikiClient.getToken("query", "tokens", null);
+        Call<ResponseBody> call = mediaWikiClient.getToken("query", "tokens", null);
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -115,6 +115,7 @@ public class SoundRecordingActivity extends AppCompatActivity {
                         try {
                             reader = new JSONObject(responseStr);
                             tokenJSONObject = reader.getJSONObject("query").getJSONObject("tokens");
+                            //noinspection SpellCheckingInspection
                             editToken = tokenJSONObject.getString("csrftoken");
                             if (editToken.equals("+\\")) {
                                 Toast.makeText(getApplicationContext(),
@@ -152,8 +153,8 @@ public class SoundRecordingActivity extends AppCompatActivity {
 
     private void completeUpload(String title, String filePath, String editToken) {
         // create upload service client
-        MediawikiClient service =
-                ServiceGenerator.createService(MediawikiClient.class, getApplicationContext());
+        MediaWikiClient service =
+                ServiceGenerator.createService(MediaWikiClient.class, getApplicationContext());
 
         File file = new File(filePath);
         // create RequestBody instance from file
@@ -256,10 +257,10 @@ public class SoundRecordingActivity extends AppCompatActivity {
         File file = new File(filepath, AUDIO_RECORDER_FOLDER);
 
         if (!file.exists()) {
-            file.mkdirs();
+            if (!file.mkdirs())
+                Log.d(TAG, "Can not create directory!");
         }
 
-        String returnPath = file.getAbsolutePath() + "/" + "record" + AUDIO_RECORDER_FILE_EXT_WAV;
-        return returnPath;
+        return file.getAbsolutePath() + "/" + RECORDED_FILENAME;
     }
 }

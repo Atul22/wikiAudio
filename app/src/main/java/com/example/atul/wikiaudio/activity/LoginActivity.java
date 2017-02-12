@@ -9,7 +9,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.atul.wikiaudio.R;
-import com.example.atul.wikiaudio.rest.MediawikiClient;
+import com.example.atul.wikiaudio.rest.MediaWikiClient;
 import com.example.atul.wikiaudio.rest.ServiceGenerator;
 
 import org.json.JSONException;
@@ -40,8 +40,8 @@ public class LoginActivity extends AppCompatActivity {
                 String username = mUsername.getText().toString();
                 String password = mPassword.getText().toString();
                 if (username.isEmpty() || password.isEmpty())
-                    Toast.makeText(getApplicationContext(), "Please enter your credentials!", Toast.LENGTH_LONG)
-                            .show();
+                    Toast.makeText(getApplicationContext(), "Please enter your credentials!",
+                            Toast.LENGTH_LONG).show();
                 else
                     initiateLogin(username, password);
             }
@@ -49,9 +49,9 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void initiateLogin(final String username, final String password) {
-        MediawikiClient mediawikiClient = ServiceGenerator.createService(MediawikiClient.class,
+        MediaWikiClient mediaWikiClient = ServiceGenerator.createService(MediaWikiClient.class,
                 getApplicationContext());
-        Call<ResponseBody> call = mediawikiClient.getToken("query", "tokens", "login");
+        Call<ResponseBody> call = mediaWikiClient.getToken("query", "tokens", "login");
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -64,6 +64,7 @@ public class LoginActivity extends AppCompatActivity {
                         try {
                             reader = new JSONObject(responseStr);
                             tokenJSONObject = reader.getJSONObject("query").getJSONObject("tokens");
+                            //noinspection SpellCheckingInspection
                             lgToken = tokenJSONObject.getString("logintoken");
                             completeLogin(username, password, lgToken);
                         } catch (JSONException e) {
@@ -88,9 +89,9 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void completeLogin(final String username, final String password, final String token) {
-        MediawikiClient mediawikiClient = ServiceGenerator.createService(MediawikiClient.class,
+        MediaWikiClient mediaWikiClient = ServiceGenerator.createService(MediaWikiClient.class,
                 getApplicationContext());
-        Call<ResponseBody> call = mediawikiClient.login("login", username, password, token);
+        Call<ResponseBody> call = mediaWikiClient.login("login", username, password, token);
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
