@@ -7,6 +7,9 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.MimeTypeMap;
@@ -102,6 +105,25 @@ public class SoundRecordingActivity extends AppCompatActivity {
                 initiateUpload("record_test.wav", getFilename());
             }
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.sound_recording_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.logout:
+                logout();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     private void initiateUpload(final String title, final String filepath) {
@@ -257,6 +279,8 @@ public class SoundRecordingActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putBoolean(getString(R.string.pref_is_logged_in), false);
         editor.apply();
+
+        ServiceGenerator.clearCookies();
 
         Intent intent = new Intent(getApplicationContext(),
                 LoginActivity.class);

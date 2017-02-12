@@ -8,7 +8,6 @@ import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersisto
 
 import java.io.IOException;
 
-import okhttp3.CookieJar;
 import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -51,7 +50,7 @@ public class ServiceGenerator {
         }
     };
 
-    private static CookieJar cookieJar = null;
+    private static PersistentCookieJar cookieJar = null;
 
     private static OkHttpClient.Builder httpClient =
             new OkHttpClient.Builder();
@@ -79,5 +78,10 @@ public class ServiceGenerator {
         }
 
         return retrofit.create(serviceClass);
+    }
+
+    public static void clearCookies() {
+        if (cookieJar != null)
+            cookieJar.clear();
     }
 }

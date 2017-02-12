@@ -6,4 +6,5 @@
 
     <string name="pref_file_key">com.example.atul.wikiaudio.prefs</string>
     <string name="pref_is_logged_in">pref_is_logged_in</string>
+    <string name="log_out">Log out</string>
 </resources>
