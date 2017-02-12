@@ -1,6 +1,8 @@
 package com.example.atul.wikiaudio.activity;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
@@ -122,9 +124,7 @@ public class SoundRecordingActivity extends AppCompatActivity {
                                 Toast.makeText(getApplicationContext(),
                                         "You are not logged in! \nPlease login to continue.",
                                         Toast.LENGTH_LONG).show();
-                                Intent intent = new Intent(getApplicationContext(),
-                                        LoginActivity.class);
-                                startActivity(intent);
+                                logout();
                             } else {
                                 completeUpload(title, filepath, editToken);
                             }
@@ -244,5 +244,21 @@ public class SoundRecordingActivity extends AppCompatActivity {
         }
 
         return file.getAbsolutePath() + "/" + RECORDED_FILENAME;
+    }
+
+    private void logout() {
+        //  Write to shared preferences
+        SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(
+                getString(R.string.pref_file_key),
+                Context.MODE_PRIVATE
+        );
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putBoolean(getString(R.string.pref_is_logged_in), false);
+        editor.apply();
+
+        Intent intent = new Intent(getApplicationContext(),
+                LoginActivity.class);
+        startActivity(intent);
+        finish();
     }
 }

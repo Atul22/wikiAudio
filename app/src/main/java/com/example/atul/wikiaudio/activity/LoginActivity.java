@@ -1,6 +1,8 @@
 package com.example.atul.wikiaudio.activity;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -24,10 +26,20 @@ import retrofit2.Response;
 
 public class LoginActivity extends AppCompatActivity {
     public EditText mUsername, mPassword;
+    private SharedPreferences sharedPref;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        sharedPref = getApplicationContext().getSharedPreferences(
+                getString(R.string.pref_file_key),
+                Context.MODE_PRIVATE
+        );
+
+        if (isLoggedIn())
+            launchSoundRecordingActivity();
+
         setContentView(R.layout.activity_start);
 
         mUsername = (EditText) findViewById(R.id.username);
@@ -105,8 +117,12 @@ public class LoginActivity extends AppCompatActivity {
                             loginJSONObject = reader.getJSONObject("login");
                             String result = loginJSONObject.getString("result");
                             if (result.equals("Success")) {
-                                Intent intent = new Intent(getApplicationContext(), SoundRecordingActivity.class);
-                                startActivity(intent);
+                                //  Write to shared preferences
+                                SharedPreferences.Editor editor = sharedPref.edit();
+                                editor.putBoolean(getString(R.string.pref_is_logged_in), true);
+                                editor.apply();
+                                // Move to new activity
+                                launchSoundRecordingActivity();
                             } else if (result.equals("Failed")) {
                                 Toast.makeText(getApplicationContext(),
                                         loginJSONObject.getString("reason"),
@@ -131,5 +147,15 @@ public class LoginActivity extends AppCompatActivity {
                         Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    private boolean isLoggedIn() {
+        return sharedPref.getBoolean(getString(R.string.pref_is_logged_in), false);
+    }
+
+    private void launchSoundRecordingActivity() {
+        Intent intent = new Intent(getApplicationContext(), SoundRecordingActivity.class);
+        startActivity(intent);
+        finish();
     }
 }
