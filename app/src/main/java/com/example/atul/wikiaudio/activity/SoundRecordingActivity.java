@@ -1,7 +1,6 @@
 package com.example.atul.wikiaudio.activity;
 
 import android.content.Intent;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
@@ -16,6 +15,7 @@ import android.widget.Toast;
 import com.example.atul.wikiaudio.R;
 import com.example.atul.wikiaudio.rest.MediaWikiClient;
 import com.example.atul.wikiaudio.rest.ServiceGenerator;
+import com.example.atul.wikiaudio.util.WAVPlayer;
 import com.example.atul.wikiaudio.util.WAVRecorder;
 
 import org.json.JSONException;
@@ -23,6 +23,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.Callable;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -39,10 +40,10 @@ public class SoundRecordingActivity extends AppCompatActivity {
     private static final String RECORDED_FILENAME = "record.wav";
     private static final String AUDIO_RECORDER_FOLDER = "AudioRecorder";
     final WAVRecorder recorder = new WAVRecorder();
+    final WAVPlayer player = new WAVPlayer();
     public Boolean mStartPlaying = true;
     private Button playButton;
     private TextView recordText;
-    private MediaPlayer mPlayer = null;
 
     public static String getMimeType(String url) {
         String type = null;
@@ -70,7 +71,7 @@ public class SoundRecordingActivity extends AppCompatActivity {
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     Log.d(TAG, "Start Recording");
-                    stopPlaying();
+                    player.stopPlaying();
                     playButton.setText(R.string.play_button_start);
                     recorder.startRecording();
                     recordText.setText(R.string.now_recording);
@@ -216,40 +217,20 @@ public class SoundRecordingActivity extends AppCompatActivity {
     }
 
     private void onPlayStatusChanged() {
-        if (mStartPlaying)
-            startPlaying();
-        else
-            stopPlaying();
         if (mStartPlaying) {
+            player.startPlaying(getFilename(), new Callable() {
+                @Override
+                public Object call() throws Exception {
+                    onPlayStatusChanged();
+                    return null;
+                }
+            });
             playButton.setText(R.string.play_button_stop);
         } else {
             playButton.setText(R.string.play_button_start);
         }
+
         mStartPlaying = !mStartPlaying;
-    }
-
-    private void startPlaying() {
-        mPlayer = new MediaPlayer();
-        try {
-            mPlayer.setDataSource(getFilename());
-            mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                @Override
-                public void onCompletion(MediaPlayer mediaPlayer) {
-                    onPlayStatusChanged();
-                }
-            });
-            mPlayer.prepare();
-            mPlayer.start();
-        } catch (IOException e) {
-            Log.e("error", "prepare() failed");
-        }
-    }
-
-    private void stopPlaying() {
-        if (mPlayer != null) {
-            mPlayer.release();
-            mPlayer = null;
-        }
     }
 
     private String getFilename() {
