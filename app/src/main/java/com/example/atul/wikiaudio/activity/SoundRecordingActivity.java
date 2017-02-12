@@ -41,7 +41,7 @@ public class SoundRecordingActivity extends AppCompatActivity {
     private static final String AUDIO_RECORDER_FOLDER = "AudioRecorder";
     final WAVRecorder recorder = new WAVRecorder();
     final WAVPlayer player = new WAVPlayer();
-    public Boolean mStartPlaying = true;
+    public Boolean isPlaying = false;
     private Button playButton;
     private TextView recordText;
 
@@ -78,7 +78,7 @@ public class SoundRecordingActivity extends AppCompatActivity {
                 } else if (event.getAction() == MotionEvent.ACTION_UP) {
                     Log.d(TAG, "Stop Recording");
                     recordText.setText("");
-                    mStartPlaying = true;
+                    isPlaying = true;
                     recorder.stopRecording(getFilename());
                 }
                 return false;
@@ -217,7 +217,10 @@ public class SoundRecordingActivity extends AppCompatActivity {
     }
 
     private void onPlayStatusChanged() {
-        if (mStartPlaying) {
+        if (isPlaying) {
+            player.stopPlaying();
+            playButton.setText(R.string.play_button_start);
+        } else {
             player.startPlaying(getFilename(), new Callable() {
                 @Override
                 public Object call() throws Exception {
@@ -226,11 +229,9 @@ public class SoundRecordingActivity extends AppCompatActivity {
                 }
             });
             playButton.setText(R.string.play_button_stop);
-        } else {
-            playButton.setText(R.string.play_button_start);
         }
 
-        mStartPlaying = !mStartPlaying;
+        isPlaying = !isPlaying;
     }
 
     private String getFilename() {
