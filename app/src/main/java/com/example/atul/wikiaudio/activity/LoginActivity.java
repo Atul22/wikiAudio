@@ -22,7 +22,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class StartActivity extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity {
     public EditText mUsername, mPassword;
 
     @Override

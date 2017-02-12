@@ -5,19 +5,17 @@ import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
-import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.atul.wikiaudio.Network;
 import com.example.atul.wikiaudio.R;
 import com.example.atul.wikiaudio.rest.MediawikiClient;
 import com.example.atul.wikiaudio.rest.ServiceGenerator;
@@ -30,8 +28,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -56,6 +56,15 @@ public class SoundRecordingActivity extends AppCompatActivity {
     private Button playButton;
     private TextView recordText;
     private MediaPlayer mPlayer = null;
+
+    public static String getMimeType(String url) {
+        String type = null;
+        String extension = MimeTypeMap.getFileExtensionFromUrl(url);
+        if (extension != null) {
+            type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+        }
+        return type;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -100,7 +109,7 @@ public class SoundRecordingActivity extends AppCompatActivity {
         uploadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                initiateUpload("record.wav", getFilename());
+                initiateUpload("record_test.wav", getFilename());
             }
         });
     }
@@ -127,7 +136,7 @@ public class SoundRecordingActivity extends AppCompatActivity {
                                         "You are not logged in! \nPlease login to continue.",
                                         Toast.LENGTH_LONG).show();
                                 Intent intent = new Intent(getApplicationContext(),
-                                        StartActivity.class);
+                                        LoginActivity.class);
                                 startActivity(intent);
                             } else {
                                 completeUpload(title, filepath, editToken);
@@ -156,29 +165,81 @@ public class SoundRecordingActivity extends AppCompatActivity {
         });
     }
 
-    private void completeUpload(String title, String filepath, String editToken) {
-        Toast.makeText(getApplicationContext(),
-                "Edit token: " + editToken,
-                Toast.LENGTH_LONG).show();
+    private void completeUpload(String title, String filePath, String editToken) {
+        // create upload service client
+        MediawikiClient service =
+                ServiceGenerator.createService(MediawikiClient.class, getApplicationContext());
+
+        File file = new File(filePath);
+        // create RequestBody instance from file
+        RequestBody requestFile =
+                RequestBody.create(
+                        MediaType.parse(getMimeType(filePath)),
+                        file
+                );
+
+        // MultipartBody.Part is used to send also the actual file name
+        MultipartBody.Part body =
+                MultipartBody.Part.createFormData("file", title, requestFile);
+
+        // finally, execute the request
+        Call<ResponseBody> call = service.uploadFile(
+                RequestBody.create(MultipartBody.FORM, "upload"),
+                RequestBody.create(MultipartBody.FORM, title),
+                RequestBody.create(MultipartBody.FORM, editToken),
+                body,
+                RequestBody.create(MultipartBody.FORM, "{{PD-self}}")
+        );
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call,
+                                   Response<ResponseBody> response) {
+                try {
+                    String responseStr = response.body().string();
+                    JSONObject reader;
+                    JSONObject uploadJSONObject;
+                    try {
+                        reader = new JSONObject(responseStr);
+                        uploadJSONObject = reader.getJSONObject("upload");
+                        String result = uploadJSONObject.getString("result");
+                        Toast.makeText(getApplicationContext(),
+                                "Upload: " + result,
+                                Toast.LENGTH_LONG).show();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Toast.makeText(getApplicationContext(),
+                                "Server misbehaved! \nPlease try again later.",
+                                Toast.LENGTH_LONG).show();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Toast.makeText(getApplicationContext(),
+                            "Please check your connection!",
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Toast.makeText(getApplicationContext(),
+                        "Please check your connection!",
+                        Toast.LENGTH_LONG).show();
+                Log.e("Upload error:", t.getMessage());
+            }
+        });
     }
 
     private void onPlayStatusChanged() {
-        onPlay(mStartPlaying);
+        if (mStartPlaying)
+            startPlaying();
+        else
+            stopPlaying();
         if (mStartPlaying) {
             playButton.setText(R.string.play_button_stop);
         } else {
             playButton.setText(R.string.play_button_start);
         }
         mStartPlaying = !mStartPlaying;
-    }
-
-
-    private void onPlay(boolean start) {
-        if (start) {
-            startPlaying();
-        } else {
-            stopPlaying();
-        }
     }
 
     private void startPlaying() {
@@ -205,7 +266,6 @@ public class SoundRecordingActivity extends AppCompatActivity {
         }
     }
 
-
     private String getFilename() {
         String filepath = Environment.getExternalStorageDirectory().getPath();
         File file = new File(filepath, AUDIO_RECORDER_FOLDER);
@@ -214,7 +274,8 @@ public class SoundRecordingActivity extends AppCompatActivity {
             file.mkdirs();
         }
 
-        return (file.getAbsolutePath() + "/" + "record" + AUDIO_RECORDER_FILE_EXT_WAV);
+        String returnPath = file.getAbsolutePath() + "/" + "record" + AUDIO_RECORDER_FILE_EXT_WAV;
+        return returnPath;
     }
 
     private String getTempFilename() {
@@ -393,36 +454,4 @@ public class SoundRecordingActivity extends AppCompatActivity {
         out.write(header, 0, 44);
     }
 
-    private class UploadData extends AsyncTask<String, String, String> {
-
-        String resultEdit, edit_token;
-        String title;
-        InputStream in_stream;
-
-        UploadData(String title, String filePath) {
-            this.title = title;
-            try {
-                this.in_stream = getContentResolver().openInputStream(
-                        Uri.fromFile(new File(filePath)));
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
-
-        @Override
-        protected String doInBackground(String... params) {
-            String responseStr = Network.getEditToken();
-            edit_token = responseStr;
-            Log.d("EditToken", responseStr);
-            resultEdit = Network.uploadFile(title, in_stream, edit_token);
-            return resultEdit;
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            super.onPostExecute(result);
-            Log.d("post", result);
-        }
-
-    }
 }
