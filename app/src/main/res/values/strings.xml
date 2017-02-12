@@ -3,5 +3,4 @@
     <string name="play_button_start">Start Playing</string>
     <string name="play_button_stop">Stop Playing</string>
     <string name="now_recording">Now Recording</string>
-    <string name="internal_storage">Internal storage</string>
 </resources>
