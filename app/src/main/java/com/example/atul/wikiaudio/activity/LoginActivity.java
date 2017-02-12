@@ -25,7 +25,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class LoginActivity extends AppCompatActivity {
-    public EditText mUsername, mPassword;
+    private EditText mUsername, mPassword;
     private SharedPreferences sharedPref;
 
     @Override

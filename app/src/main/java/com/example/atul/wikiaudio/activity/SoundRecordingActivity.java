@@ -38,12 +38,14 @@ import retrofit2.Response;
 public class SoundRecordingActivity extends AppCompatActivity {
 
     private static final String TAG = SoundRecordingActivity.class.getSimpleName();
-
     private static final String RECORDED_FILENAME = "record.wav";
     private static final String AUDIO_RECORDER_FOLDER = "AudioRecorder";
+
     final WAVRecorder recorder = new WAVRecorder();
     final WAVPlayer player = new WAVPlayer();
+
     public Boolean isPlaying = false;
+
     private Button playButton;
     private TextView recordText;
 
