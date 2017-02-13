@@ -1,5 +1,6 @@
 package com.example.atul.wikiaudio.activity;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -51,6 +52,7 @@ public class SoundRecordingActivity extends AppCompatActivity {
 
     private Button playButton;
     private TextView recordText;
+    private ProgressDialog progressDialog;
 
     public static String getMimeType(String url) {
         String type = null;
@@ -66,12 +68,10 @@ public class SoundRecordingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         Button recordButton = (Button) findViewById(R.id.btnStart);
         playButton = (Button) findViewById(R.id.btnPlay);
         recordText = (TextView) findViewById(R.id.space);
         Button uploadButton = (Button) findViewById(R.id.upload_button);
-
 
         recordButton.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -130,6 +130,7 @@ public class SoundRecordingActivity extends AppCompatActivity {
         MediaWikiClient mediaWikiClient = ServiceGenerator.createService(MediaWikiClient.class,
                 getApplicationContext());
         Call<ResponseBody> call = mediaWikiClient.getToken("query", "tokens", null);
+        progressDialog = ProgressDialog.show(this, "Upload Audio", "Uploading your file...", true);
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -145,33 +146,25 @@ public class SoundRecordingActivity extends AppCompatActivity {
                             //noinspection SpellCheckingInspection
                             editToken = tokenJSONObject.getString("csrftoken");
                             if (editToken.equals("+\\")) {
-                                Toast.makeText(getApplicationContext(),
-                                        "You are not logged in! \nPlease login to continue.",
-                                        Toast.LENGTH_LONG).show();
+                                dismissDialog("You are not logged in! \nPlease login to continue.");
                                 logout();
                             } else {
                                 completeUpload(title, filepath, editToken);
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
-                            Toast.makeText(getApplicationContext(),
-                                    "Server misbehaved! \nPlease try again later.",
-                                    Toast.LENGTH_LONG).show();
+                            dismissDialog("Server misbehaved! \nPlease try again later.");
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
-                        Toast.makeText(getApplicationContext(),
-                                "Please check your connection!",
-                                Toast.LENGTH_LONG).show();
+                        dismissDialog("Please check your connection!");
                     }
                 }
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Toast.makeText(getApplicationContext(),
-                        "Please check your connection!",
-                        Toast.LENGTH_LONG).show();
+                dismissDialog("Please check your connection!");
             }
         });
     }
@@ -213,28 +206,20 @@ public class SoundRecordingActivity extends AppCompatActivity {
                         reader = new JSONObject(responseStr);
                         uploadJSONObject = reader.getJSONObject("upload");
                         String result = uploadJSONObject.getString("result");
-                        Toast.makeText(getApplicationContext(),
-                                "Upload: " + result,
-                                Toast.LENGTH_LONG).show();
+                        dismissDialog("Upload: " + result);
                     } catch (JSONException e) {
                         e.printStackTrace();
-                        Toast.makeText(getApplicationContext(),
-                                "Server misbehaved! \nPlease try again later.",
-                                Toast.LENGTH_LONG).show();
+                        dismissDialog("Server misbehaved! Please try again later.");
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
-                    Toast.makeText(getApplicationContext(),
-                            "Please check your connection!",
-                            Toast.LENGTH_LONG).show();
+                    dismissDialog("Please check your connection!");
                 }
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Toast.makeText(getApplicationContext(),
-                        "Please check your connection!",
-                        Toast.LENGTH_LONG).show();
+                dismissDialog("Please check your connection!");
                 Log.e("Upload error:", t.getMessage());
             }
         });
@@ -286,5 +271,12 @@ public class SoundRecordingActivity extends AppCompatActivity {
                 LoginActivity.class);
         startActivity(intent);
         finish();
+    }
+
+    private void dismissDialog(String msg) {
+        if (progressDialog != null)
+            progressDialog.dismiss();
+        if (msg != null)
+            Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
     }
 }
