@@ -1,5 +1,6 @@
 package com.example.atul.wikiaudio.activity;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -26,6 +27,7 @@ import retrofit2.Response;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText mUsername, mPassword;
+    private ProgressDialog progressDialog;
     private SharedPreferences sharedPref;
 
     @Override
@@ -64,6 +66,8 @@ public class LoginActivity extends AppCompatActivity {
         MediaWikiClient mediaWikiClient = ServiceGenerator.createService(MediaWikiClient.class,
                 getApplicationContext());
         Call<ResponseBody> call = mediaWikiClient.getToken("query", "tokens", "login");
+
+        progressDialog = ProgressDialog.show(this, "Log in", "Logging you in...", true);
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -81,21 +85,18 @@ public class LoginActivity extends AppCompatActivity {
                             completeLogin(username, password, lgToken);
                         } catch (JSONException e) {
                             e.printStackTrace();
-                            Toast.makeText(getApplicationContext(),
-                                    "Login Failed!\nPlease check your credentials/connection!",
-                                    Toast.LENGTH_LONG).show();
+                            loginFailed("Server misbehaved! Please try again later.");
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
+                        loginFailed("Please check your connection!");
                     }
                 }
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Toast.makeText(getApplicationContext(),
-                        "Please check your connection!",
-                        Toast.LENGTH_LONG).show();
+                loginFailed("Please check your connection!");
             }
         });
     }
@@ -124,18 +125,15 @@ public class LoginActivity extends AppCompatActivity {
                                 // Move to new activity
                                 launchSoundRecordingActivity();
                             } else if (result.equals("Failed")) {
-                                Toast.makeText(getApplicationContext(),
-                                        loginJSONObject.getString("reason"),
-                                        Toast.LENGTH_LONG).show();
+                                loginFailed(loginJSONObject.getString("reason"));
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
-                            Toast.makeText(getApplicationContext(),
-                                    "Login Failed!\nPlease check your credentials/connection!",
-                                    Toast.LENGTH_LONG).show();
+                            loginFailed("Server misbehaved! Please try again later.");
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
+                        loginFailed("Please check your connection!");
                     }
                 }
             }
@@ -154,8 +152,16 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void launchSoundRecordingActivity() {
+        if (progressDialog != null)
+            progressDialog.dismiss();
         Intent intent = new Intent(getApplicationContext(), SoundRecordingActivity.class);
         startActivity(intent);
         finish();
+    }
+
+    private void loginFailed(String msg) {
+        if (progressDialog != null)
+            progressDialog.dismiss();
+        Toast.makeText(this, "Login failed!\n" + msg, Toast.LENGTH_LONG).show();
     }
 }
