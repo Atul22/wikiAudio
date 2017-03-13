@@ -40,7 +40,7 @@ public class LoginActivity extends AppCompatActivity {
         );
 
         if (isLoggedIn())
-            launchSoundRecordingActivity();
+            launchSearchActivity();
 
         setContentView(R.layout.activity_start);
 
@@ -123,7 +123,7 @@ public class LoginActivity extends AppCompatActivity {
                                 editor.putBoolean(getString(R.string.pref_is_logged_in), true);
                                 editor.apply();
                                 // Move to new activity
-                                launchSoundRecordingActivity();
+                                launchSearchActivity();
                             } else if (result.equals("Failed")) {
                                 loginFailed(loginJSONObject.getString("reason"));
                             }
@@ -151,10 +151,10 @@ public class LoginActivity extends AppCompatActivity {
         return sharedPref.getBoolean(getString(R.string.pref_is_logged_in), false);
     }
 
-    private void launchSoundRecordingActivity() {
+    private void launchSearchActivity() {
         if (progressDialog != null)
             progressDialog.dismiss();
-        Intent intent = new Intent(getApplicationContext(), SoundRecordingActivity.class);
+        Intent intent = new Intent(getApplicationContext(), SearchActivity.class);
         startActivity(intent);
         finish();
     }

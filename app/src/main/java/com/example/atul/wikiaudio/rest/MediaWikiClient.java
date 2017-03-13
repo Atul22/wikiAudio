@@ -38,4 +38,13 @@ public interface MediaWikiClient {
             @Part MultipartBody.Part file,
             @Part("text") RequestBody text
     );
+
+    @FormUrlEncoded
+    @POST("./")
+    Call<ResponseBody> search(
+            @Field("action") String action,
+            @Field("list") String list,
+            @Field("srsearch") String srsearch,
+            @Field("utf8") Boolean utf8
+    );
 }

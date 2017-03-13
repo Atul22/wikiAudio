@@ -18,7 +18,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ServiceGenerator {
-    private static final String BASE_URL = "https://en.wikipedia.org/w/api.php/";
+    private static final String BASE_URL = "https://en.wiktionary.org/w/api.php/";
 
     private static Retrofit retrofit;
 

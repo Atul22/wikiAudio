@@ -110,7 +110,7 @@ public class SoundRecordingActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.sound_recording_menu, menu);
+        inflater.inflate(R.menu.base_menu, menu);
         return true;
     }
 
