@@ -16,7 +16,7 @@
         android:layout_width="250dp"
         android:layout_height="250dp"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="25dp"
+        android:layout_marginTop="20dp"
         android:contentDescription="Wiktionary"
         app:srcCompat="@drawable/wiktionary" />
 
@@ -27,4 +27,11 @@
         android:layout_below="@+id/wiktionary_logo"
         android:layout_centerHorizontal="true"
         android:orientation="horizontal" />
+
+    <ListView
+        android:id="@+id/search_result_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/search_bar" />
+
 </RelativeLayout>

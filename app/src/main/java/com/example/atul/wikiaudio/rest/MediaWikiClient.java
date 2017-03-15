@@ -45,6 +45,7 @@ public interface MediaWikiClient {
             @Field("action") String action,
             @Field("list") String list,
             @Field("srsearch") String srsearch,
+            @Field("sroffset") int sroffset,
             @Field("utf8") Boolean utf8
     );
 }
