@@ -59,7 +59,10 @@ public class SearchActivity extends AppCompatActivity {
                 nextOffset = 0;
                 wiktionaryTitleArrayList.clear();
                 resultListAdapter.notifyDataSetChanged();
+
                 progressDialog = ProgressDialog.show(SearchActivity.this, "Search", "Fetching results...", true);
+                endlessScrollListener.setLoading(true);
+
                 search(queryString);
                 return true;
             }
@@ -187,7 +190,6 @@ public class SearchActivity extends AppCompatActivity {
             nextOffset = null;
 
         resultListAdapter.notifyDataSetChanged();
-        endlessScrollListener.setLoading(false);
 
         if (progressDialog != null)
             progressDialog.dismiss();
