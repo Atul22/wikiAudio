@@ -1,6 +1,5 @@
 package com.example.atul.wikiaudio.activity;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,16 +9,15 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.Toast;
 
 import com.example.atul.wikiaudio.R;
 import com.example.atul.wikiaudio.rest.MediaWikiClient;
 import com.example.atul.wikiaudio.rest.ServiceGenerator;
-import com.example.atul.wikiaudio.ui.EndlessScrollListener;
+import com.example.atul.wikiaudio.ui.EndlessAdapter;
+import com.example.atul.wikiaudio.ui.EndlessListView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -33,14 +31,9 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class SearchActivity extends AppCompatActivity {
+public class SearchActivity extends AppCompatActivity implements EndlessListView.EndlessListener {
 
-    private ProgressDialog progressDialog;
-    private ListView resultList;
-
-    private ArrayList<String> wiktionaryTitleArrayList;
-    private ArrayAdapter<String> resultListAdapter;
-    private EndlessScrollListener endlessScrollListener;
+    private EndlessListView resultListView;
 
     private String queryString;
     private Integer nextOffset;
@@ -57,11 +50,11 @@ public class SearchActivity extends AppCompatActivity {
             public boolean onQueryTextSubmit(String s) {
                 queryString = s;
                 nextOffset = 0;
-                wiktionaryTitleArrayList.clear();
-                resultListAdapter.notifyDataSetChanged();
+                resultListView.reset();
 
-                progressDialog = ProgressDialog.show(SearchActivity.this, "Search", "Fetching results...", true);
-                endlessScrollListener.setLoading(true);
+                ImageView wiktionaryLogo = (ImageView) findViewById(R.id.wiktionary_logo);
+                wiktionaryLogo.setVisibility(View.GONE);
+                resultListView.setVisibility(View.VISIBLE);
 
                 search(queryString);
                 return true;
@@ -73,30 +66,13 @@ public class SearchActivity extends AppCompatActivity {
             }
         });
 
-        wiktionaryTitleArrayList = new ArrayList<>();
-        resultListAdapter = new ArrayAdapter<String>(
-                this, android.R.layout.simple_list_item_1, wiktionaryTitleArrayList
-        );
-
-        endlessScrollListener = new EndlessScrollListener() {
-            @Override
-            public boolean onLoadMore(int page, int totalItemsCount) {
-                // Triggered only when new data needs to be appended to the list
-                // Add whatever code is needed to append new items to your AdapterView
-                if (nextOffset != null) {
-                    search(queryString);
-                    // or loadNextDataFromApi(totalItemsCount);
-                    return true; // ONLY if more data is actually being loaded; false otherwise.
-                } else {
-                    return false;
-                }
-            }
-        };
-
-        resultList = (ListView) findViewById(R.id.search_result_list);
-        resultList.setAdapter(resultListAdapter);
-        resultList.setOnScrollListener(endlessScrollListener);
-        resultList.setVisibility(View.INVISIBLE);
+        resultListView = (EndlessListView) findViewById(R.id.search_result_list);
+        resultListView.setLoadingView(R.layout.loading_row);
+        resultListView.setAdapter(new EndlessAdapter(
+                this, new ArrayList<String>(), R.layout.search_result_row
+        ));
+        resultListView.setListener(this);
+        resultListView.setVisibility(View.INVISIBLE);
     }
 
     @Override
@@ -156,31 +132,30 @@ public class SearchActivity extends AppCompatActivity {
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
-                        searchFailed("Please check your connection!");
+                        searchFailed("Please check your connection!\nScroll to try again!");
                     }
                 }
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                searchFailed("Please check your connection!");
+                searchFailed("Please check your connection!\nScroll to try again!");
             }
         });
     }
 
     private void searchFailed(String msg) {
-        if (progressDialog != null)
-            progressDialog.dismiss();
-        endlessScrollListener.setLoading(false);
+        resultListView.loadLaterOnScroll();
         Toast.makeText(this, "Search failed!\n" + msg, Toast.LENGTH_LONG).show();
     }
 
     private void processSearchResult(String responseStr) throws JSONException {
         JSONObject reader = new JSONObject(responseStr);
 
+        ArrayList<String> titleList = new ArrayList<>();
         JSONArray searchResults = reader.getJSONObject("query").optJSONArray("search");
         for (int ii = 0; ii < searchResults.length(); ii++) {
-            wiktionaryTitleArrayList.add(
+            titleList.add(
                     searchResults.getJSONObject(ii).getString("title")
             );
         }
@@ -189,14 +164,18 @@ public class SearchActivity extends AppCompatActivity {
         else
             nextOffset = null;
 
-        resultListAdapter.notifyDataSetChanged();
+        resultListView.addNewData(titleList);
+    }
 
-        if (progressDialog != null)
-            progressDialog.dismiss();
-
-        ImageView wiktionaryLogo = (ImageView) findViewById(R.id.wiktionary_logo);
-        wiktionaryLogo.setVisibility(View.GONE);
-        resultList.setVisibility(View.VISIBLE);
+    @Override
+    public boolean loadData() {
+        // Triggered only when new data needs to be appended to the list
+        // Return true if loading is in progress, false if there is no more data to load
+        if (nextOffset != null) {
+            search(queryString);
+            return true;
+        } else
+            return false;
     }
 }
 

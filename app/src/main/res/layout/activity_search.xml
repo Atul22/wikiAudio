@@ -28,7 +28,7 @@
         android:layout_centerHorizontal="true"
         android:orientation="horizontal" />
 
-    <ListView
+    <com.example.atul.wikiaudio.ui.EndlessListView
         android:id="@+id/search_result_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
